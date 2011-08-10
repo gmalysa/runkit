@@ -14,6 +14,7 @@
   +----------------------------------------------------------------------+
   | Author: Sara Golemon <pollita@php.net>                               |
   | Modified by Dmitry Zenovich <dzenovich@gmail.com>                    |
+  | Modified by Greg Malysa <greg@thelonepole.com>                       |
   +----------------------------------------------------------------------+
 */
 
@@ -99,10 +100,15 @@ PHP_FUNCTION(runkit_constant_redefine);
 PHP_FUNCTION(runkit_constant_remove);
 PHP_FUNCTION(runkit_constant_add);
 PHP_FUNCTION(runkit_default_property_add);
+PHP_FUNCTION(runkit_static_property_add);
 PHP_FUNCTION(runkit_class_emancipate);
 PHP_FUNCTION(runkit_class_adopt);
 PHP_FUNCTION(runkit_import);
 #endif /* PHP_RUNKIT_MANIPULATION */
+
+#ifdef PHP_RUNKIT_MANIPULATION
+PHP_FUNCTION(runkit_apply_template);
+#endif
 
 #ifdef PHP_RUNKIT_SANDBOX
 PHP_FUNCTION(runkit_sandbox_output_handler);

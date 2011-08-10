@@ -14,6 +14,7 @@
   +----------------------------------------------------------------------+
   | Author: Sara Golemon <pollita@php.net>                               |
   | Modified by Dmitry Zenovich <dzenovich@gmail.com>                    |
+  | Modified by Greg Malysa <greg@thelonepole.com>                       |
   +----------------------------------------------------------------------+
 */
 
@@ -88,6 +89,106 @@ int php_runkit_update_children_static_props(RUNKIT_53_TSRMLS_ARG(zend_class_entr
 	return ZEND_HASH_APPLY_KEEP;
 }
 /* }}} */
+
+/* {{{ php_runkit_static_prop_add
+ */
+static int php_runkit_static_prop_add(char *classname, int classname_len, char *propname, int propname_len, zval *value, int visibility TSRMLS_DC)
+{
+	zend_class_entry *ce;
+	zval *copyval;
+	char *temp, *key = propname;
+	int temp_len, key_len = propname_len;
+
+	switch (value->type) {
+		case IS_LONG:
+		case IS_DOUBLE:
+		case IS_STRING:
+		case IS_BOOL:
+		case IS_RESOURCE:
+		case IS_NULL:
+			break;
+		default:
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Default properties may only evaluate to scalar values");
+			return FAILURE;
+	}
+
+	if (php_runkit_fetch_class(classname, classname_len, &ce TSRMLS_CC)==FAILURE) {
+		return FAILURE;
+	}
+
+	if (ce->type != ZEND_USER_CLASS) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Adding properties to internal classes is not allowed");
+		return FAILURE;
+	}
+
+	/* Check for existing property by this name */
+	/* Existing public? */
+	if (zend_hash_exists(&ce->default_static_members, key, key_len + 1)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s::%s already exists", classname, propname);
+		return FAILURE;
+	}
+
+#ifdef ZEND_ENGINE_2
+	/* Existing Protected? */
+	zend_mangle_property_name(&temp, &temp_len, "*", 1, propname, propname_len, 0);
+	if (zend_hash_exists(&ce->default_static_members, temp, temp_len + 1)) {
+		efree(temp);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s::%s already exists", classname, propname);
+		return FAILURE;
+	}
+	if (visibility == ZEND_ACC_PROTECTED) {
+		key = temp;
+		key_len = temp_len;
+	} else {
+		efree(temp);
+	}
+
+	/* Existing Private? */
+	zend_mangle_property_name(&temp, &temp_len, classname, classname_len, propname, propname_len, 0);
+	if (zend_hash_exists(&ce->default_static_members, temp, temp_len + 1)) {
+		efree(temp);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s::%s already exists", classname, propname);
+		return FAILURE;
+	}
+	if (visibility == ZEND_ACC_PRIVATE) {
+		key = temp;
+		key_len = temp_len;
+	} else {
+		efree(temp);
+	}
+#endif
+
+	ALLOC_ZVAL(copyval);
+	*copyval = *value;
+	zval_copy_ctor(copyval);
+
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 3) || (PHP_MAJOR_VERSION >= 6)
+	Z_SET_REFCOUNT_P(copyval, 1);
+	Z_UNSET_ISREF_P(copyval);
+#else
+	copyval->RUNKIT_REFCOUNT = 1;
+	copyval->is_ref = 0;
+#endif
+
+	if (zend_hash_add(&ce->default_static_members, key, key_len + 1, &copyval, sizeof(zval *), NULL) == FAILURE) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to add default property to class definition");
+		zval_ptr_dtor(&copyval);
+		return FAILURE;
+	}
+
+// Static members don't need to get exported to children because they share the parent's static
+//#ifdef ZEND_ENGINE_2
+//	if (visibility != ZEND_ACC_PRIVATE) {
+//		zend_hash_apply_with_arguments(RUNKIT_53_TSRMLS_PARAM(EG(class_table)), (apply_func_args_t)php_runkit_update_children_def_props, 4, ce, copyval, key, key_len);
+//	}
+//#endif
+
+	if (key != propname) {
+		efree(key);
+	}
+
+	return SUCCESS;
+}
 
 /* {{{ php_runkit_prop_add
  */
@@ -213,11 +314,36 @@ PHP_FUNCTION(runkit_default_property_add)
 	}
 
 	php_strtolower(classname, classname_len);
-	php_strtolower(propname, propname_len);
+	//php_strtolower(propname, propname_len);
 
 	RETURN_BOOL(php_runkit_def_prop_add(classname, classname_len, propname, propname_len, value, visibility TSRMLS_CC) == SUCCESS);
 }
 /* }}} */
+
+/* {{{ proto bool runkit_static_property_add(string classname, string propname, mixed initialvalue[, int visibility])
+ * Adds a static member to a class with a given visibility
+ */
+PHP_FUNCTION(runkit_static_property_add)
+{
+	char *classname, *propname;
+	int classname_len, propname_len;
+	zval *value;
+	long visibility;
+	int existing_visibility;
+
+#ifdef ZEND_ENGINE_2
+	visibility = ZEND_ACC_PUBLIC;
+#endif
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s/s/z|l", &classname, &classname_len, &propname, &propname_len, &value, &visibility) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	php_strtolower(classname, classname_len);
+	//php_strtolower(propname, propname_len);
+	
+	RETURN_BOOL(php_runkit_static_prop_add(classname, classname_len, propname, propname_len, value, visibility TSRMLS_CC) == SUCCESS);
+}
 #endif /* PHP_RUNKIT_MANIPULATION */
 
 /*

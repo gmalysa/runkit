@@ -14,6 +14,7 @@
   +----------------------------------------------------------------------+
   | Author: Sara Golemon <pollita@php.net>                               |
   | Modified by Dmitry Zenovich <dzenovich@gmail.com>                    |
+  | Modified by Greg Malysa <greg@thelonepole.com>                       |
   +----------------------------------------------------------------------+
 */
 
@@ -83,6 +84,10 @@ zend_function_entry runkit_functions[] = {
 #endif
 
 #ifdef PHP_RUNKIT_MANIPULATION
+	PHP_FE(runkit_apply_template,									NULL)
+#endif
+
+#ifdef PHP_RUNKIT_MANIPULATION
 	PHP_FE(runkit_class_emancipate,									NULL)
 	PHP_FE(runkit_class_adopt,										NULL)
 	PHP_FE(runkit_import,											NULL)
@@ -113,6 +118,7 @@ zend_function_entry runkit_functions[] = {
 	PHP_FE(runkit_constant_add,										NULL)
 
 	PHP_FE(runkit_default_property_add,								NULL)
+	PHP_FE(runkit_static_property_add,								NULL)
 #endif /* PHP_RUNKIT_MANIPULATION */
 
 #ifdef PHP_RUNKIT_SANDBOX
