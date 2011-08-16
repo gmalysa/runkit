@@ -17,23 +17,42 @@ Execute code in restricted environment (sandboxing).
   <active>yes</active>
  </lead>
  <lead>
+  <name>Greg Malysa</name>
+  <user></user>
+  <email>greg@thelonepole.com</email>
+  <active>yes</active>
+ <lead>
   <name>Sara Golemon</name>
   <user>pollita</user>
   <email>pollita@php.net</email>
   <active>no</active>
  </lead>
 
-   <date>2010-10-05</date>
+   <date>2011-08-15</date>
    <version>
-    <release>1.0.2</release>
-    <api>1.0.1</api>
+    <release>1.0.4-dev</release>
+    <api>1.0.4</api>
    </version>
    <stability>
-    <release>stable</release>
-    <api>stable</api>
+    <release>beta</release>
+    <api>beta</api>
    </stability>
    <license uri="http://www.php.net/license">PHP</license>
-   <notes>Disappointing incompatibility issue with php 5.3+ in untested code was fixed.</notes>
+   <notes>
+   Bugfixes:
+     + Added a fix for Bug #13 regarding runkit_class_emancipate() and runkit_class_adopt()
+ 
+   Changes:
+     + Improvements to the structure of helper functions defined in runkit_methods.c, to avoid
+	   doing lookups over and over for class entries and function entries. This will enable
+	   reuse of these code segments in other features.
+     + runkit_static_property_add() to add a static member to an existing class.
+   
+   Future Plans:
+     + runkit support for trait-like and graft-like functionality. See https://wiki.php.net/rfc/horizontalreuse
+	   for an idea of what the functionality will be; the syntax will be different since this won't
+	   change the php core at all.
+   </notes>
 
  <contents>
   <dir name="/">
@@ -108,6 +127,7 @@ Execute code in restricted environment (sandboxing).
     <file name="bug10300.phpt" role="test" />
     <file name="bug4519.inc" role="test" />
     <file name="bug4519.phpt" role="test" />
+	<file name="gitbug13.phpt" role="test" />
    </dir> <!-- //tests -->
    <file name="config.m4" role="src" />
    <file name="config.w32" role="src" />
@@ -121,6 +141,7 @@ Execute code in restricted environment (sandboxing).
    <file name="runkit_import.c" role="src" />
    <file name="runkit_methods.c" role="src" />
    <file name="runkit_props.c" role="src" />
+   <file name="runkit_template.c" role="src" />
    <file name="runkit_sandbox.c" role="src" />
    <file name="runkit_sandbox_parent.c" role="src" />
    <file name="tsrm_5.0.diff" role="src" />
@@ -140,6 +161,20 @@ Execute code in restricted environment (sandboxing).
  <extsrcrelease />
 
  <changelog>
+
+  <release>
+   <date>2010-10-05</date>
+   <version>
+    <release>1.0.2</release>
+    <api>1.0.1</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP</license>
+   <notes>Disappointing incompatibility issue with php 5.3+ in untested code was fixed.</notes>
+  </release>
 
   <release>
    <date>2010-10-03</date>

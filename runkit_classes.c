@@ -14,6 +14,7 @@
   +----------------------------------------------------------------------+
   | Author: Sara Golemon <pollita@php.net>                               |
   | Modified by Dmitry Zenovich <dzenovich@gmail.com>                    |
+  | Modified by Greg Malysa <greg@thelonepole.com>                       |
   +----------------------------------------------------------------------+
 */
 
@@ -63,6 +64,8 @@ PHP_FUNCTION(runkit_class_emancipate)
 	}
 
 	zend_hash_apply_with_argument(&ce->function_table, (apply_func_arg_t)php_runkit_remove_inherited_methods, ce TSRMLS_CC);
+
+	ce->parent = NULL;
 
 	RETURN_TRUE;
 }
@@ -126,6 +129,8 @@ PHP_FUNCTION(runkit_class_adopt)
 	}
 
 	zend_hash_apply_with_argument(&parent->function_table, (apply_func_arg_t)php_runkit_inherit_methods, ce TSRMLS_CC);
+
+	ce->parent = parent;
 
 	RETURN_TRUE;
 }
