@@ -107,7 +107,6 @@ PHP_FUNCTION(runkit_import);
 #endif /* PHP_RUNKIT_MANIPULATION */
 
 #ifdef PHP_RUNKIT_MANIPULATION
-PHP_FUNCTION(runkit_apply_template);
 #endif
 
 #ifdef PHP_RUNKIT_SANDBOX
