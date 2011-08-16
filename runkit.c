@@ -84,10 +84,6 @@ zend_function_entry runkit_functions[] = {
 #endif
 
 #ifdef PHP_RUNKIT_MANIPULATION
-	PHP_FE(runkit_apply_template,									NULL)
-#endif
-
-#ifdef PHP_RUNKIT_MANIPULATION
 	PHP_FE(runkit_class_emancipate,									NULL)
 	PHP_FE(runkit_class_adopt,										NULL)
 	PHP_FE(runkit_import,											NULL)
